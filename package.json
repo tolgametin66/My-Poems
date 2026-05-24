@@ -4,14 +4,13 @@
   "description": "A personal poetry and quotes collection",
   "main": "server/index.js",
   "scripts": {
-    "start": "node server/index.js",
-    "dev": "nodemon server/index.js",
-    "seed": "node server/seed.js",
+    "start": "node --no-warnings=ExperimentalWarning server/index.js",
+    "dev": "nodemon --exec \"node --no-warnings=ExperimentalWarning\" server/index.js",
+    "seed": "node --no-warnings=ExperimentalWarning server/seed.js",
     "build": "cd client && npm install && npm run build",
     "dev:all": "concurrently \"npm run dev\" \"cd client && npm run dev\""
   },
   "dependencies": {
-    "better-sqlite3": "^9.4.3",
     "cors": "^2.8.5",
     "express": "^4.18.3"
   },

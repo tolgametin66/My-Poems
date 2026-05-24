@@ -20,7 +20,8 @@ function excerpt(body) {
   return body.slice(0, 120) + (body.length > 120 ? '...' : '');
 }
 
-const seedDb = db.transaction(() => {
+db.exec('BEGIN');
+const seedDb = () => {
   const emily = insertPoet.run(
     'Emily Dickinson',
     'ED',
@@ -199,7 +200,13 @@ My soul has grown deep like the rivers.`;
     JSON.stringify(['dreams', 'justice', 'harlem', 'America']),
     1, 'Montage of a Dream Deferred', 1951
   );
-});
+};
 
-seedDb();
+try {
+  seedDb();
+  db.exec('COMMIT');
+} catch (e) {
+  db.exec('ROLLBACK');
+  throw e;
+}
 console.log('Database seeded successfully with 3 poets and 8 entries.');
