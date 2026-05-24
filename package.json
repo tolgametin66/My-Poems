@@ -4,6 +4,7 @@
   "description": "A personal poetry and quotes collection",
   "main": "server/index.js",
   "scripts": {
+    "build": "npm install --prefix client && npm run build --prefix client",
     "start": "node --no-warnings=ExperimentalWarning server/index.js",
     "seed": "node --no-warnings=ExperimentalWarning server/seed.js",
     "setup": "npm install --prefix client && npm run build --prefix client",

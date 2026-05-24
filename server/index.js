@@ -2,6 +2,9 @@ const express = require('express');
 const cors = require('cors');
 const path = require('path');
 
+// Auto-seed on first boot (idempotent — skips if data already exists)
+require('./seed');
+
 const app = express();
 const PORT = process.env.PORT || 3001;
 

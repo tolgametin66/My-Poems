@@ -3,7 +3,7 @@ const db = require('./db');
 const existingPoets = db.prepare('SELECT COUNT(*) as count FROM poets').get();
 if (existingPoets.count > 0) {
   console.log('Database already seeded. Skipping.');
-  process.exit(0);
+  return;
 }
 
 const insertPoet = db.prepare(`
