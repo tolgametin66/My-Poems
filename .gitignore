@@ -1,0 +1,8 @@
+node_modules/
+client/node_modules/
+anthology.db
+anthology.db-shm
+anthology.db-wal
+client/dist/
+*.local
+.DS_Store
