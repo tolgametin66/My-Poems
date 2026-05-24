@@ -5,17 +5,13 @@
   "main": "server/index.js",
   "scripts": {
     "start": "node --no-warnings=ExperimentalWarning server/index.js",
-    "dev": "nodemon --exec \"node --no-warnings=ExperimentalWarning\" server/index.js",
     "seed": "node --no-warnings=ExperimentalWarning server/seed.js",
-    "build": "cd client && npm install && npm run build",
-    "dev:all": "concurrently \"npm run dev\" \"cd client && npm run dev\""
+    "setup": "npm install --prefix client && npm run build --prefix client",
+    "dev:server": "node --no-warnings=ExperimentalWarning server/index.js",
+    "dev:client": "npm run dev --prefix client"
   },
   "dependencies": {
     "cors": "^2.8.5",
     "express": "^4.18.3"
-  },
-  "devDependencies": {
-    "concurrently": "^8.2.2",
-    "nodemon": "^3.1.0"
   }
 }
