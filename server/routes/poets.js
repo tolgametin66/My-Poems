@@ -1,6 +1,6 @@
 const express = require('express');
 const router = express.Router();
-const db = require('../db');
+const { client } = require('../db');
 
 const WITH_COUNT = `
   SELECT p.*, COUNT(e.id) as entry_count
@@ -8,73 +8,83 @@ const WITH_COUNT = `
   LEFT JOIN entries e ON p.id = e.poet_id
 `;
 
-// GET /api/poets
-router.get('/', (req, res) => {
-  const poets = db.prepare(`${WITH_COUNT} GROUP BY p.id ORDER BY p.name ASC`).all();
-  res.json(poets);
-});
-
-// GET /api/poets/:id
-router.get('/:id', (req, res) => {
-  const poet = db.prepare(`${WITH_COUNT} WHERE p.id = ? GROUP BY p.id`).get(req.params.id);
-  if (!poet) return res.status(404).json({ error: 'Poet not found' });
-  res.json(poet);
-});
-
-// POST /api/poets
-router.post('/', (req, res) => {
-  const { name, initials, color, born, died, nationality, bio } = req.body;
-  if (!name) return res.status(400).json({ error: 'name is required' });
-
-  const autoInitials = initials || name.split(' ').map(w => w[0]).join('').toUpperCase().slice(0, 2);
-
-  const result = db.prepare(`
-    INSERT INTO poets (name, initials, color, born, died, nationality, bio)
-    VALUES (?, ?, ?, ?, ?, ?, ?)
-  `).run(name, autoInitials, color || '#7F77DD', born || null, died || null,
-         nationality || null, bio || null);
-
-  const poet = db.prepare(`${WITH_COUNT} WHERE p.id = ? GROUP BY p.id`).get(result.lastInsertRowid);
-  res.status(201).json(poet);
-});
-
-// PUT /api/poets/:id
-router.put('/:id', (req, res) => {
-  const existing = db.prepare('SELECT * FROM poets WHERE id = ?').get(req.params.id);
-  if (!existing) return res.status(404).json({ error: 'Poet not found' });
-
-  const { name, initials, color, born, died, nationality, bio } = req.body;
-
-  db.prepare(`
-    UPDATE poets SET name=?, initials=?, color=?, born=?, died=?, nationality=?, bio=?
-    WHERE id=?
-  `).run(
-    name        !== undefined ? name        : existing.name,
-    initials    !== undefined ? initials    : existing.initials,
-    color       !== undefined ? color       : existing.color,
-    born        !== undefined ? (born || null)        : existing.born,
-    died        !== undefined ? (died || null)        : existing.died,
-    nationality !== undefined ? (nationality || null) : existing.nationality,
-    bio         !== undefined ? (bio  || null)        : existing.bio,
-    req.params.id
-  );
-
-  const poet = db.prepare(`${WITH_COUNT} WHERE p.id = ? GROUP BY p.id`).get(req.params.id);
-  res.json(poet);
-});
-
-// DELETE /api/poets/:id
-router.delete('/:id', (req, res) => {
-  const existing = db.prepare('SELECT id FROM poets WHERE id = ?').get(req.params.id);
-  if (!existing) return res.status(404).json({ error: 'Poet not found' });
-
-  const { count } = db.prepare('SELECT COUNT(*) as count FROM entries WHERE poet_id = ?').get(req.params.id);
-  if (count > 0) {
-    return res.status(400).json({ error: 'Cannot delete a poet who has entries. Remove or reassign their entries first.' });
+router.get('/', async (req, res) => {
+  try {
+    const { rows } = await client.execute(`${WITH_COUNT} GROUP BY p.id ORDER BY p.name ASC`);
+    res.json(rows);
+  } catch (e) {
+    res.status(500).json({ error: e.message });
   }
+});
 
-  db.prepare('DELETE FROM poets WHERE id = ?').run(req.params.id);
-  res.json({ success: true });
+router.get('/:id', async (req, res) => {
+  try {
+    const { rows } = await client.execute({ sql: `${WITH_COUNT} WHERE p.id = ? GROUP BY p.id`, args: [req.params.id] });
+    if (!rows[0]) return res.status(404).json({ error: 'Poet not found' });
+    res.json(rows[0]);
+  } catch (e) {
+    res.status(500).json({ error: e.message });
+  }
+});
+
+router.post('/', async (req, res) => {
+  try {
+    const { name, initials, color, born, died, nationality, bio } = req.body;
+    if (!name) return res.status(400).json({ error: 'name is required' });
+    const autoInitials = initials || name.split(' ').map(w => w[0]).join('').toUpperCase().slice(0, 2);
+
+    const result = await client.execute({
+      sql: `INSERT INTO poets (name, initials, color, born, died, nationality, bio) VALUES (?, ?, ?, ?, ?, ?, ?)`,
+      args: [name, autoInitials, color || '#7F77DD', born || null, died || null, nationality || null, bio || null],
+    });
+    const { rows } = await client.execute({ sql: `${WITH_COUNT} WHERE p.id = ? GROUP BY p.id`, args: [Number(result.lastInsertRowid)] });
+    res.status(201).json(rows[0]);
+  } catch (e) {
+    res.status(500).json({ error: e.message });
+  }
+});
+
+router.put('/:id', async (req, res) => {
+  try {
+    const { rows: existing } = await client.execute({ sql: 'SELECT * FROM poets WHERE id = ?', args: [req.params.id] });
+    if (!existing[0]) return res.status(404).json({ error: 'Poet not found' });
+    const ex = existing[0];
+    const { name, initials, color, born, died, nationality, bio } = req.body;
+
+    await client.execute({
+      sql: `UPDATE poets SET name=?, initials=?, color=?, born=?, died=?, nationality=?, bio=? WHERE id=?`,
+      args: [
+        name        !== undefined ? name        : ex.name,
+        initials    !== undefined ? initials    : ex.initials,
+        color       !== undefined ? color       : ex.color,
+        born        !== undefined ? (born || null)        : ex.born,
+        died        !== undefined ? (died || null)        : ex.died,
+        nationality !== undefined ? (nationality || null) : ex.nationality,
+        bio         !== undefined ? (bio  || null)        : ex.bio,
+        req.params.id,
+      ],
+    });
+    const { rows } = await client.execute({ sql: `${WITH_COUNT} WHERE p.id = ? GROUP BY p.id`, args: [req.params.id] });
+    res.json(rows[0]);
+  } catch (e) {
+    res.status(500).json({ error: e.message });
+  }
+});
+
+router.delete('/:id', async (req, res) => {
+  try {
+    const { rows: existing } = await client.execute({ sql: 'SELECT id FROM poets WHERE id = ?', args: [req.params.id] });
+    if (!existing[0]) return res.status(404).json({ error: 'Poet not found' });
+
+    const { rows: countRows } = await client.execute({ sql: 'SELECT COUNT(*) as count FROM entries WHERE poet_id = ?', args: [req.params.id] });
+    if (Number(countRows[0].count) > 0) {
+      return res.status(400).json({ error: 'Cannot delete a poet who has entries. Remove or reassign their entries first.' });
+    }
+    await client.execute({ sql: 'DELETE FROM poets WHERE id = ?', args: [req.params.id] });
+    res.json({ success: true });
+  } catch (e) {
+    res.status(500).json({ error: e.message });
+  }
 });
 
 module.exports = router;
