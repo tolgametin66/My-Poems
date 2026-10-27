@@ -13,7 +13,7 @@ export function AppProvider({ children }) {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
   const [user, setUser] = useState(null);
-  const isOwner = !!user && user.email === OWNER_EMAIL;
+  const isOwner = !!user && (!OWNER_EMAIL || user.email === OWNER_EMAIL);
 
   const fetchAll = useCallback(async () => {
     try {
@@ -36,7 +36,10 @@ export function AppProvider({ children }) {
     api.seedIfEmpty().then(seeded => { if (seeded) fetchAll(); }).catch(() => {});
   }, [isOwner, fetchAll]);
 
-  const signIn = () => signInWithPopup(auth, googleProvider);
+  const [authError, setAuthError] = useState(null);
+  const signIn = () => signInWithPopup(auth, googleProvider)
+    .then(() => setAuthError(null))
+    .catch(err => setAuthError(err.code || err.message));
   const signOut = () => fbSignOut(auth);
 
   // Entries
@@ -89,7 +92,7 @@ export function AppProvider({ children }) {
   return (
     <AppContext.Provider value={{
       entries, poets, loading, error,
-      user, isOwner, signIn, signOut,
+      user, isOwner, authError, signIn, signOut,
       createEntry, updateEntry, deleteEntry,
       createPoet, updatePoet, deletePoet,
       refetch: fetchAll,

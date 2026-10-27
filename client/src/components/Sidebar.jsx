@@ -13,7 +13,7 @@ const NAV = [
 ];
 
 export default function Sidebar({ open, onClose, theme, onToggleTheme, onNewEntry }) {
-  const { poets, entries, user, isOwner, signIn, signOut } = useApp();
+  const { poets, entries, user, isOwner, authError, signIn, signOut } = useApp();
 
   return (
     <>
@@ -48,6 +48,19 @@ export default function Sidebar({ open, onClose, theme, onToggleTheme, onNewEntr
         </div>
 
         {/* New Entry button */}
+        {!user && (
+          <div className="px-4 pt-4">
+            <button onClick={signIn} className="btn-primary w-full justify-center">
+              Sign in with Google
+            </button>
+            {authError && <p className="mt-2 text-xs text-red-500 break-words">{authError}</p>}
+          </div>
+        )}
+        {user && !isOwner && (
+          <p className="px-4 pt-4 text-xs text-red-500">
+            {user.email} is not the owner account, so editing is disabled.
+          </p>
+        )}
         {isOwner && (
           <div className="px-4 pt-4">
             <button onClick={() => { onNewEntry(); onClose(); }} className="btn-primary w-full justify-center">
@@ -101,10 +114,10 @@ export default function Sidebar({ open, onClose, theme, onToggleTheme, onNewEntr
               {entries.length} {entries.length === 1 ? 'entry' : 'entries'}
             </span>
             <button
-              onClick={user ? signOut : () => signIn().catch(() => {})}
+              onClick={user ? signOut : signIn}
               className="text-xs text-accent hover:underline"
             >
-              {user ? 'Sign out' : 'Owner sign in'}
+              {user ? `Sign out (${user.email})` : 'Owner sign in'}
             </button>
           </div>
           <button
