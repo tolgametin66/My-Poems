@@ -2,19 +2,9 @@
   "name": "the-anthology",
   "version": "1.0.0",
   "description": "A personal poetry and quotes collection",
-  "main": "server/index.js",
+  "private": true,
   "scripts": {
-    "build": "npm install --prefix client && npm run build --prefix client",
-    "start": "node --no-warnings=ExperimentalWarning server/index.js",
-    "seed": "node --no-warnings=ExperimentalWarning server/seed.js",
-    "setup": "npm install --prefix client && npm run build --prefix client",
-    "dev:server": "node --no-warnings=ExperimentalWarning server/index.js",
-    "dev:client": "npm run dev --prefix client"
-  },
-  "dependencies": {
-    "@libsql/client": "^0.14.0",
-    "cors": "^2.8.5",
-    "express": "^4.18.3",
-    "serverless-http": "^4.0.0"
+    "dev": "npm run dev --prefix client",
+    "build": "npm install --prefix client && npm run build --prefix client"
   }
 }

@@ -1,5 +1,9 @@
 import { createContext, useContext, useState, useEffect, useCallback } from 'react';
+import { onAuthStateChanged, signInWithPopup, signOut as fbSignOut } from 'firebase/auth';
 import { api } from '../api';
+import { auth, googleProvider } from '../firebase';
+
+const OWNER_EMAIL = import.meta.env.VITE_OWNER_EMAIL;
 
 const AppContext = createContext(null);
 
@@ -8,6 +12,8 @@ export function AppProvider({ children }) {
   const [poets, setPoets] = useState([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
+  const [user, setUser] = useState(null);
+  const isOwner = !!user && user.email === OWNER_EMAIL;
 
   const fetchAll = useCallback(async () => {
     try {
@@ -22,6 +28,16 @@ export function AppProvider({ children }) {
   }, []);
 
   useEffect(() => { fetchAll(); }, [fetchAll]);
+
+  useEffect(() => onAuthStateChanged(auth, setUser), []);
+
+  useEffect(() => {
+    if (!isOwner) return;
+    api.seedIfEmpty().then(seeded => { if (seeded) fetchAll(); }).catch(() => {});
+  }, [isOwner, fetchAll]);
+
+  const signIn = () => signInWithPopup(auth, googleProvider);
+  const signOut = () => fbSignOut(auth);
 
   // Entries
   const createEntry = async (data) => {
@@ -73,6 +89,7 @@ export function AppProvider({ children }) {
   return (
     <AppContext.Provider value={{
       entries, poets, loading, error,
+      user, isOwner, signIn, signOut,
       createEntry, updateEntry, deleteEntry,
       createPoet, updatePoet, deletePoet,
       refetch: fetchAll,

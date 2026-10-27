@@ -1,3 +1,4 @@
+import { useApp } from '../context/AppContext';
 import { Star, Edit2, Quote, BookOpen, ExternalLink } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
 import { cn } from '../lib/utils';
@@ -5,6 +6,7 @@ import PoetAvatar from './PoetAvatar';
 import ConfirmDelete from './ConfirmDelete';
 
 export default function EntryCard({ entry, onEdit, onDelete, onToggleFavorite, view = 'grid' }) {
+  const { isOwner } = useApp();
   const navigate = useNavigate();
   const poet = entry.poet_id ? {
     id: entry.poet_id,
@@ -110,7 +112,7 @@ export default function EntryCard({ entry, onEdit, onDelete, onToggleFavorite, v
         {!isList && !poet && <span className="text-xs text-gray-400 italic">Anonymous</span>}
 
         {/* Actions */}
-        <div className={cn(
+        {isOwner && <div className={cn(
           'flex items-center gap-0.5',
           !isList && 'opacity-0 group-hover:opacity-100 transition-opacity'
         )}>
@@ -134,7 +136,7 @@ export default function EntryCard({ entry, onEdit, onDelete, onToggleFavorite, v
             <Edit2 size={15} />
           </button>
           <ConfirmDelete onConfirm={() => onDelete(entry.id)} />
-        </div>
+        </div>}
       </div>
     </div>
   );

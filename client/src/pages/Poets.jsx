@@ -8,7 +8,7 @@ import PoetModal from '../components/PoetModal';
 import ConfirmDelete from '../components/ConfirmDelete';
 
 export default function Poets() {
-  const { poets, entries, createPoet, updatePoet, deletePoet, loading } = useApp();
+  const { poets, entries, createPoet, updatePoet, deletePoet, loading, isOwner } = useApp();
   const [modal, setModal] = useState({ open: false, poet: null });
   const [deleteError, setDeleteError] = useState('');
   const navigate = useNavigate();
@@ -45,9 +45,11 @@ export default function Poets() {
             <h2 className="text-2xl font-semibold text-gray-900 dark:text-gray-100">Poets</h2>
             <p className="text-sm text-gray-400 mt-0.5">{poets.length} {poets.length === 1 ? 'poet' : 'poets'} in your collection</p>
           </div>
-          <button onClick={openAdd} className="btn-primary">
-            <Plus size={16} /> Add Poet
-          </button>
+          {isOwner && (
+            <button onClick={openAdd} className="btn-primary">
+              <Plus size={16} /> Add Poet
+            </button>
+          )}
         </div>
 
         {deleteError && (
@@ -59,9 +61,11 @@ export default function Poets() {
         {poets.length === 0 ? (
           <div className="text-center py-20">
             <p className="text-gray-400 mb-4">No poets yet. Add your first poet to get started.</p>
-            <button onClick={openAdd} className="btn-primary">
-              <Plus size={16} /> Add Poet
-            </button>
+            {isOwner && (
+              <button onClick={openAdd} className="btn-primary">
+                <Plus size={16} /> Add Poet
+              </button>
+            )}
           </div>
         ) : (
           <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
@@ -93,7 +97,7 @@ export default function Poets() {
                         </p>
                       )}
                     </div>
-                    <div className="flex gap-1 opacity-0 group-hover:opacity-100 transition-opacity">
+                    {isOwner && <div className="flex gap-1 opacity-0 group-hover:opacity-100 transition-opacity">
                       <button
                         onClick={() => openEdit(poet)}
                         className="p-1.5 rounded-md text-gray-400 hover:text-accent hover:bg-accent/10 transition-colors"
@@ -104,7 +108,7 @@ export default function Poets() {
                         onConfirm={() => handleDelete(poet)}
                         label="Delete poet"
                       />
-                    </div>
+                    </div>}
                   </div>
 
                   {poet.bio && (

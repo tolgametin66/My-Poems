@@ -11,15 +11,15 @@ import ConfirmDelete from '../components/ConfirmDelete';
 export default function SingleEntry() {
   const { id } = useParams();
   const navigate = useNavigate();
-  const { entries, poets, updateEntry, deleteEntry } = useApp();
+  const { entries, poets, updateEntry, deleteEntry, isOwner } = useApp();
 
   const [editModal, setEditModal] = useState(false);
 
-  const entry = entries.find(e => e.id === Number(id));
+  const entry = entries.find(e => e.id === id);
   const poet = entry?.poet_id ? poets.find(p => p.id === entry.poet_id) : null;
 
   const related = entries
-    .filter(e => e.id !== Number(id) && e.poet_id === entry?.poet_id && entry?.poet_id)
+    .filter(e => e.id !== id && e.poet_id === entry?.poet_id && entry?.poet_id)
     .slice(0, 4);
 
   useEffect(() => {
@@ -98,7 +98,7 @@ export default function SingleEntry() {
             )}
 
             {/* Actions */}
-            <div className="mt-8 pt-6 border-t border-gray-100 dark:border-gray-800 flex items-center gap-3">
+            {isOwner && <div className="mt-8 pt-6 border-t border-gray-100 dark:border-gray-800 flex items-center gap-3">
               <button
                 onClick={() => updateEntry(entry.id, { is_favorite: !entry.is_favorite })}
                 className={cn(
@@ -118,7 +118,7 @@ export default function SingleEntry() {
                 <Edit2 size={15} /> Edit
               </button>
               <ConfirmDelete onConfirm={handleDelete} label="Delete entry" />
-            </div>
+            </div>}
           </article>
 
           {/* Sidebar */}

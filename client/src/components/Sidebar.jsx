@@ -13,7 +13,7 @@ const NAV = [
 ];
 
 export default function Sidebar({ open, onClose, theme, onToggleTheme, onNewEntry }) {
-  const { poets, entries } = useApp();
+  const { poets, entries, user, isOwner, signIn, signOut } = useApp();
 
   return (
     <>
@@ -48,11 +48,13 @@ export default function Sidebar({ open, onClose, theme, onToggleTheme, onNewEntr
         </div>
 
         {/* New Entry button */}
-        <div className="px-4 pt-4">
-          <button onClick={() => { onNewEntry(); onClose(); }} className="btn-primary w-full justify-center">
-            <Plus size={16} /> New Entry
-          </button>
-        </div>
+        {isOwner && (
+          <div className="px-4 pt-4">
+            <button onClick={() => { onNewEntry(); onClose(); }} className="btn-primary w-full justify-center">
+              <Plus size={16} /> New Entry
+            </button>
+          </div>
+        )}
 
         {/* Navigation */}
         <nav className="flex-1 overflow-y-auto px-3 py-4 space-y-0.5">
@@ -94,9 +96,17 @@ export default function Sidebar({ open, onClose, theme, onToggleTheme, onNewEntr
 
         {/* Footer */}
         <div className="p-4 border-t border-gray-100 dark:border-gray-800 flex items-center justify-between">
-          <span className="text-xs text-gray-400">
-            {entries.length} {entries.length === 1 ? 'entry' : 'entries'}
-          </span>
+          <div className="flex flex-col items-start gap-0.5">
+            <span className="text-xs text-gray-400">
+              {entries.length} {entries.length === 1 ? 'entry' : 'entries'}
+            </span>
+            <button
+              onClick={user ? signOut : () => signIn().catch(() => {})}
+              className="text-xs text-accent hover:underline"
+            >
+              {user ? 'Sign out' : 'Owner sign in'}
+            </button>
+          </div>
           <button
             onClick={onToggleTheme}
             className="p-2 rounded-lg text-gray-400 hover:text-gray-600 hover:bg-gray-100 dark:hover:text-gray-300 dark:hover:bg-gray-800 transition-colors"

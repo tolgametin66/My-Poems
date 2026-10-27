@@ -78,7 +78,7 @@ export default function EntryModal({ open, entry, onClose }) {
         type: form.type,
         title: form.title.trim(),
         body: form.body.trim(),
-        poet_id: form.poet_id ? Number(form.poet_id) : null,
+        poet_id: form.poet_id || null,
         tags: form.tags,
         is_favorite: form.is_favorite,
         source: form.source.trim() || null,

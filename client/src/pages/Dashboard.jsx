@@ -10,7 +10,7 @@ import TagFilter from '../components/TagFilter';
 import PoetAvatar from '../components/PoetAvatar';
 
 export default function Dashboard() {
-  const { entries, poets, loading, updateEntry, deleteEntry } = useApp();
+  const { entries, poets, loading, updateEntry, deleteEntry, isOwner } = useApp();
   const [searchParams] = useSearchParams();
 
   const [search, setSearch] = useState('');
@@ -119,12 +119,14 @@ export default function Dashboard() {
             >
               {view === 'grid' ? <List size={16} /> : <LayoutGrid size={16} />}
             </button>
-            <button
-              onClick={() => setModal({ open: true, entry: null })}
-              className="btn-primary"
-            >
-              <Plus size={16} /> Add Entry
-            </button>
+            {isOwner && (
+              <button
+                onClick={() => setModal({ open: true, entry: null })}
+                className="btn-primary"
+              >
+                <Plus size={16} /> Add Entry
+              </button>
+            )}
           </div>
         </div>
 
@@ -146,7 +148,7 @@ export default function Dashboard() {
             <p className="text-gray-500 dark:text-gray-400 font-medium">
               {search || activeTag ? 'No entries match your search.' : 'No entries yet — add your first poem.'}
             </p>
-            {!search && !activeTag && (
+            {!search && !activeTag && isOwner && (
               <button onClick={() => setModal({ open: true, entry: null })} className="btn-primary mt-4">
                 <Plus size={16} /> Add your first entry
               </button>
