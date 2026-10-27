@@ -1,17 +1,10 @@
 const express = require('express');
-const cors = require('cors');
 const path = require('path');
+const app = require('./app');
 const { initDb } = require('./db');
 const seed = require('./seed');
 
-const app = express();
 const PORT = process.env.PORT || 3001;
-
-app.use(cors());
-app.use(express.json());
-
-app.use('/api/entries', require('./routes/entries'));
-app.use('/api/poets', require('./routes/poets'));
 
 const clientDist = path.join(__dirname, '..', 'client', 'dist');
 app.use(express.static(clientDist));
